@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Talanta Ticket Monitor</title>
+  <title>Bayern Munich vs Ajax — Ticket Monitor</title>
   <style>
     :root {
       --bg: #ffffff;
@@ -23,13 +23,14 @@
       min-height: 100vh;
     }
 
+    /* HEADER */
     header {
       display: flex; flex-wrap: wrap; align-items: center;
       justify-content: space-between; gap: 1rem;
       padding-bottom: 1rem; margin-bottom: 2rem;
       border-bottom: 2px solid var(--line-strong);
     }
-    h1 { font-size: 1.4rem; margin: 0; letter-spacing: -.02em; }
+    h1 { font-size: 1.6rem; margin: 0; letter-spacing: -.02em; }
     h1 span { display: block; margin-top: .3rem; font-size: .8rem; font-weight: 400; color: var(--muted); }
 
     .badge {
@@ -41,6 +42,7 @@
     .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
     .dot.off { background: var(--bg); border: 1px solid var(--text); }
 
+    /* STAT CARDS */
     .cards {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 1rem; margin-bottom: 2.5rem;
@@ -58,7 +60,8 @@
     .card .num { font-size: 1.8rem; font-weight: 700; font-variant-numeric: tabular-nums; }
     .card .sub { font-size: .75rem; color: var(--muted); margin-top: .25rem; }
 
-    section { margin-bottom: 2.5rem; }
+    /* SECTIONS & HEADINGS */
+    section { margin-bottom: 3rem; }
     section > h2 {
       font-size: .95rem; font-weight: 700; margin: 0 0 .9rem;
       text-transform: uppercase; letter-spacing: .06em;
@@ -66,38 +69,88 @@
     }
     section > h2 .count { font-weight: 400; color: var(--muted); font-size: .8rem; text-transform: none; letter-spacing: 0; }
 
-    .panel { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    /* PRICING SECTION */
+    .price-placeholder {
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      background: #fafafa;
+    }
 
-    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    /* SEAT GRID MAP */
+    .seat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+      margin-bottom: 2rem;
+    }
+    .seat-block {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-family: ui-monospace, monospace;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 60px;
+    }
+    .seat-block:hover { transform: scale(1.05); border-color: var(--line-strong); z-index: 10; }
+    .seat-block strong { font-size: 0.95rem; margin-bottom: 4px; }
+    .seat-block .count { font-size: 0.7rem; opacity: 0.8; }
+    
+    /* Status Colors */
+    .seat-block.available { background: #fff; color: #000; border: 2px solid #000; font-weight: bold; }
+    .seat-block.sold-out { background: #000; color: #fff; border: 2px solid #000; }
+    .seat-block.off-sale { background: #f9f9f9; color: #999; border-style: dashed; border-color: #ccc; }
+
+    /* TABLES & PANELS */
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; table-layout: auto; }
     thead th {
       position: sticky; top: 0; background: var(--bg);
-      text-align: left; padding: .7rem .9rem;
+      text-align: left; padding: .8rem .9rem;
       font-size: .7rem; letter-spacing: .06em; text-transform: uppercase;
       color: var(--muted); border-bottom: 1px solid var(--line-strong);
       cursor: pointer; user-select: none; white-space: nowrap; font-weight: 600;
     }
     thead th:hover { color: var(--text); }
     thead th .arrow { opacity: .4; margin-left: .25rem; font-size: .65rem; }
-    tbody td { padding: .55rem .9rem; border-bottom: 1px solid var(--line); }
+    
+    tbody td { 
+      padding: .7rem .9rem; 
+      border-bottom: 1px solid var(--line); 
+      vertical-align: middle;
+    }
     tbody tr:hover td { background: var(--hover); }
     tbody tr:last-child td { border-bottom: none; }
-    td.num { text-align: right; font-variant-numeric: tabular-nums; }
-    td.mono { font-family: ui-monospace, monospace; font-size: .75rem; color: var(--muted); }
+    
+    /* Table Columns Alignment */
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    td.mono { font-family: ui-monospace, monospace; font-size: .75rem; color: var(--muted); white-space: nowrap; }
     .zero { color: #b0b0b0; }
 
     .pill {
-      display: inline-block; padding: .1rem .5rem; border-radius: 3px;
+      display: inline-block; padding: .15rem .5rem; border-radius: 3px;
       font-size: .68rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .04em; border: 1px solid var(--text);
+      letter-spacing: .04em; border: 1px solid var(--text); text-align: center;
+      min-width: 45px;
     }
     .pill.on { background: var(--text); color: var(--bg); }
     .pill.off { background: var(--bg); color: var(--muted); border-color: var(--line); }
 
-    /* Flat monochrome bar: solid black fill on light track */
-    .bar { height: 6px; background: #ececec; border-radius: 3px; overflow: hidden; min-width: 80px; }
+    .bar { height: 6px; background: #ececec; border-radius: 3px; overflow: hidden; min-width: 80px; width: 100%; }
     .bar > i { display: block; height: 100%; background: var(--text); border-radius: 3px; }
     .bar.empty > i { background: #c8c8c8; }
 
+    /* TOOLBAR */
     .toolbar { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: .9rem; align-items: center; }
     .toolbar input[type="search"], .toolbar select {
       background: var(--bg); border: 1px solid var(--line-strong);
@@ -105,27 +158,30 @@
       font-size: .82rem; outline: none;
     }
     .toolbar input[type="search"]:focus, .toolbar select:focus { box-shadow: 0 0 0 2px var(--line); }
-    .toolbar label {
-      font-size: .8rem; color: var(--muted);
-      display: flex; align-items: center; gap: .4rem; cursor: pointer;
-    }
+    .toolbar label { font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; cursor: pointer; }
     .toolbar input[type="checkbox"] { accent-color: #000; }
+    .btn-reset {
+      background: #fff; border: 1px solid #000; padding: 0.45rem 0.7rem; 
+      border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;
+    }
+    .btn-reset:hover { background: #000; color: #fff; }
 
     .err { border: 1px solid var(--text); padding: 1rem 1.25rem; border-radius: var(--radius); font-size: .85rem; }
-    .empty-state { padding: 2rem; text-align: center; color: var(--muted); font-size: .85rem; }
+    .empty-state { padding: 2rem; text-align: center; color: var(--muted); font-size: .85rem; display: none; }
     footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; }
 
     @media (max-width: 640px) {
       thead th:nth-child(1), tbody td:nth-child(1) { display: none; }
       .card .num { font-size: 1.45rem; }
+      .seat-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>
-      Talanta Sports City — Ticket Monitor
-      <span>Event 300b29f0… · Occurrence a250895f…</span>
+      Bayern Munich vs Ajax
+      <span>Talanta Sports City · Event 300b29f0…</span>
     </h1>
     <div class="badge">
       <span class="dot {{ 'off' if error or (summary and summary.on_sale_sections == 0) else '' }}"></span>
@@ -159,12 +215,86 @@
       </div>
     </div>
 
+    <!-- NEW PRICING SECTION -->
+    <section>
+      <h2>Ticket Prices <span class="count">Live updates</span></h2>
+      {% set ns = namespace(has_prices=false) %}
+      {% for s in sections %}
+        {% if s.price %}
+          {% set ns.has_prices = true %}
+        {% endif %}
+      {% endfor %}
+
+      {% if not ns.has_prices %}
+        <div class="price-placeholder">
+          <strong>Prices not yet released.</strong><br>
+          The ticketing system has not published pricing data for this event yet. This section will automatically update once prices go live.
+        </div>
+      {% else %}
+        <div class="panel">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticket Type</th>
+                <th class="num">Price</th>
+                <th class="num">Currency</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% set seen_types = [] %}
+              {% for s in sections %}
+                {% if s.price and s.ticket_type_id not in seen_types %}
+                  {% set _ = seen_types.append(s.ticket_type_id) %}
+                  <tr>
+                    <td class="mono">{{ (s.ticket_type_id or 'General Admission')[:8] }}…</td>
+                    <td class="num" style="font-weight: bold; font-size: 1rem;">{{ "{:,}".format(s.price) }}</td>
+                    <td class="num">{{ s.currency or 'KES' }}</td>
+                    <td>
+                      <span class="pill {{ 'on' if s.on_sale else 'off' }}">
+                        {{ 'ON SALE' if s.on_sale else 'NOT LIVE' }}
+                      </span>
+                    </td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </section>
+
+    <section>
+      <h2>Visual Map (Sections) <span class="count">Click a block to filter</span></h2>
+      <div class="seat-grid">
+        {% for s in sections %}
+          {% if s.total_sellable > 0 or s.available > 0 %}
+            {% set status_class = 'off-sale' %}
+            {% if s.on_sale %}
+              {% if s.available == 0 %}
+                {% set status_class = 'sold-out' %}
+              {% else %}
+                {% set status_class = 'available' %}
+              {% endif %}
+            {% endif %}
+            
+            <div class="seat-block {{ status_class }}" 
+                 onclick="filterBySection('{{ s.id }}')"
+                 title="Click to filter table">
+              <strong>{{ s.id[:6] }}</strong>
+              <span class="count">{{ s.available }} left</span>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </section>
+
     <section>
       <h2>By ticket type <span class="count">{{ summary.by_type|length }} type(s)</span></h2>
       <div class="panel">
         <table>
           <thead>
-            <tr><th>Type</th><th class="num">Sections</th><th class="num">Remaining</th><th class="num">Sellable</th><th>Availability</th></tr>
+            <tr><th>Type</th><th class="num">Sections</th><th class="num">Remaining</th><th class="num">Sellable</th><th style="width: 20%;">Availability</th></tr>
           </thead>
           <tbody>
             {% for t, v in summary.by_type.items() %}
@@ -187,7 +317,7 @@
     </section>
 
     <section>
-      <h2>Sections <span class="count" id="visibleCount">{{ sections|length }}</span></h2>
+      <h2>Sections Details <span class="count" id="visibleCount">{{ sections|length }}</span></h2>
       <div class="toolbar">
         <input type="search" id="search" placeholder="Filter by section or type…">
         <select id="typeFilter">
@@ -198,6 +328,7 @@
         </select>
         <label><input type="checkbox" id="onlyAvailable"> Only with stock</label>
         <label><input type="checkbox" id="onlyOnSale"> Only on sale</label>
+        <button class="btn-reset" onclick="resetFilters()">Reset Filters</button>
       </div>
       <div class="panel">
         <table id="sectionsTable">
@@ -207,8 +338,8 @@
               <th data-sort="type">Type <span class="arrow">↕</span></th>
               <th data-sort="available" class="num">Remaining <span class="arrow">↕</span></th>
               <th data-sort="sellable" class="num">Sellable <span class="arrow">↕</span></th>
-              <th>Availability</th>
-              <th data-sort="onsale">On sale <span class="arrow">↕</span></th>
+              <th style="width: 20%;">Availability</th>
+              <th data-sort="onsale" style="text-align: center;">On sale <span class="arrow">↕</span></th>
             </tr>
           </thead>
           <tbody>
@@ -230,12 +361,14 @@
                   <i style="width: {{ pct|round(0, 'floor') }}%"></i>
                 </div>
               </td>
-              <td><span class="pill {{ 'on' if s.on_sale else 'off' }}">{{ 'YES' if s.on_sale else 'no' }}</span></td>
+              <td style="text-align: center;">
+                <span class="pill {{ 'on' if s.on_sale else 'off' }}">{{ 'YES' if s.on_sale else 'no' }}</span>
+              </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
-        <div class="empty-state" id="emptyState" style="display:none">No sections match your filters.</div>
+        <div class="empty-state" id="emptyState">No sections match your filters.</div>
       </div>
     </section>
 
@@ -246,6 +379,7 @@
     (function () {
       const table = document.getElementById('sectionsTable');
       if (!table) return;
+      
       const tbody = table.querySelector('tbody');
       const rows = Array.from(tbody.querySelectorAll('tr'));
       const search = document.getElementById('search');
@@ -300,6 +434,20 @@
       [search, typeFilter, onlyAvailable, onlyOnSale].forEach(el =>
         el.addEventListener('input', applyFilters)
       );
+
+      window.filterBySection = function(sectionId) {
+        search.value = sectionId;
+        applyFilters();
+        document.getElementById('sectionsTable').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      };
+
+      window.resetFilters = function() {
+        search.value = '';
+        typeFilter.value = '';
+        onlyAvailable.checked = false;
+        onlyOnSale.checked = false;
+        applyFilters();
+      };
 
       sortRows(sortKey, sortDir);
       applyFilters();

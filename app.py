@@ -10,18 +10,10 @@ STATUS_URL = f"https://talantasportscity.com/seatmap/{EVENT_ID}/status"
 HEADERS = {"User-Agent": "Mozilla/5.0 (ticket-monitor)"}
 TIMEOUT = 10
 
-
 def fetch_status():
-    """Pull the live seatmap status from Talanta Sports City."""
-    r = requests.get(
-        STATUS_URL,
-        params={"o": OCCURRENCE_ID},
-        headers=HEADERS,
-        timeout=TIMEOUT,
-    )
+    r = requests.get(STATUS_URL, params={"o": OCCURRENCE_ID}, headers=HEADERS, timeout=TIMEOUT)
     r.raise_for_status()
     return r.json()
-
 
 def summarize(sections):
     total_sellable = 0
@@ -52,7 +44,6 @@ def summarize(sections):
         "by_type": dict(by_type),
     }
 
-
 @app.route("/")
 def index():
     try:
@@ -62,25 +53,20 @@ def index():
 
     sections = data.get("sections", [])
     summary = summarize(sections)
-    rows = sorted(sections, key=lambda s: (s.get("available") or 0), reverse=True)
-    return render_template(
-        "index.html",
-        error=None,
-        summary=summary,
-        sections=rows,
-    )
-
+    
+    # Sort sections alphabetically by their ID so the grid groups similar sections together (e.g., 101, 102, Gold)
+    sections.sort(key=lambda x: x["id"])
+    
+    return render_template("index.html", error=None, summary=summary, sections=sections)
 
 @app.route("/api")
 def api():
-    """Optional JSON endpoint — handy for polling / scripting."""
     try:
         data = fetch_status()
     except Exception as e:
         return jsonify({"error": str(e)}), 502
     sections = data.get("sections", [])
     return jsonify({"summary": summarize(sections), "sections": sections})
-
 
 if __name__ == "__main__":
     app.run(debug=True)
