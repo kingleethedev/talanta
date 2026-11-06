@@ -3,364 +3,568 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="30">
+  <meta http-equiv="refresh" content="60">
   <title>Bayern Munich vs Ajax — Ticket Monitor</title>
   <style>
     :root {
-      --bg: #ffffff; --text: #000000; --muted: #6b6b6b;
-      --line: #d9d9d9; --line-strong: #000000;
-      --panel: #ffffff; --hover: #f2f2f2; --radius: 6px;
+      --bg: #f7f7f8;
+      --surface: #ffffff;
+      --ink: #0e0e10;
+      --ink-2: #4b4b52;
+      --ink-3: #8a8a92;
+      --line: #e4e4e8;
+      --line-2: #d0d0d6;
+      --accent: #b91c1c;
+      --accent-soft: #fee2e2;
+      --ok: #166534;
+      --ok-soft: #dcfce7;
+      --warn: #92400e;
+      --warn-soft: #fef3c7;
+      --pitch: #2e7d32;
+      --pitch-dark: #1b5e20;
+      --pitch-stripe: #35883a;
+      --radius: 8px;
+      --shadow: 0 1px 2px rgba(0,0,0,.05), 0 1px 3px rgba(0,0,0,.06);
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; background: var(--bg); color: var(--text); }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
     body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      padding: 1.5rem clamp(0.75rem, 3vw, 3rem); min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+      padding: 0;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .shell { max-width: 1440px; margin: 0 auto; padding: 20px clamp(12px, 3vw, 32px) 40px; }
+
+    /* ── HEADER ─────────────────────────────────────── */
+    header.app {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+      padding-bottom: 16px; margin-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand h1 {
+      font-size: 1.15rem; font-weight: 700; margin: 0;
+      letter-spacing: -0.01em;
+    }
+    .brand p {
+      margin: 2px 0 0; font-size: 12px; color: var(--ink-3);
+    }
+    .hdr-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px; font-size: 11px; font-weight: 600;
+      background: var(--ok-soft); color: var(--ok);
+      border-radius: 999px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .live-badge.off { background: var(--accent-soft); color: var(--accent); }
+    .live-badge .pulse {
+      width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
     }
 
-    header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
-      gap:1rem; padding-bottom:1rem; margin-bottom:1.5rem; border-bottom:2px solid var(--line-strong); }
-    h1 { font-size:1.4rem; margin:0; letter-spacing:-.02em; }
-    h1 span { display:block; margin-top:.3rem; font-size:.75rem; font-weight:400; color:var(--muted); }
-    .badge { display:inline-flex; align-items:center; gap:.5rem;
-      border:1px solid var(--line-strong); padding:.4rem .8rem; border-radius:999px;
-      font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; }
-    .dot { width:8px; height:8px; border-radius:50%; background:var(--text); }
-    .dot.off { background:var(--bg); border:1px solid var(--text); }
-
-    .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr));
-      gap:.75rem; margin-bottom:2rem; }
-    .card { border:1px solid var(--line-strong); border-radius:var(--radius);
-      padding:.75rem 1rem; background:var(--panel); }
-    .card h3 { margin:0 0 .25rem; font-size:.65rem; letter-spacing:.08em;
-      text-transform:uppercase; color:var(--muted); font-weight:600; }
-    .card .num { font-size:1.5rem; font-weight:700; font-variant-numeric:tabular-nums; }
-    .card .sub { font-size:.7rem; color:var(--muted); margin-top:.15rem; }
-
-    section { margin-bottom:2rem; }
-    section > h2 { font-size:.85rem; font-weight:700; margin:0 0 .75rem;
-      text-transform:uppercase; letter-spacing:.06em;
-      display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; }
-    section > h2 .count { font-weight:400; color:var(--muted); font-size:.75rem;
-      text-transform:none; letter-spacing:0; }
-
-    /* ── STADIUM VIEW (SVG) ─────────────────────────── */
-    .stadium-container {
-      border: 1px solid var(--line-strong);
+    /* ── KPI ROW ─────────────────────────────────────── */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: var(--panel);
-      padding: 1rem;
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1rem;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 4px;
+      min-height: 90px;
+    }
+    .kpi .label {
+      font-size: 11px; font-weight: 600; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .kpi .value {
+      font-size: 1.7rem; font-weight: 700; line-height: 1.1;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi .sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+
+    /* ── PRICE LADDER ───────────────────────────────── */
+    .ladder {
+      display: flex; gap: 0; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); overflow: hidden;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .ladder-step {
+      flex: 1 1 140px; padding: 12px 16px;
+      border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .ladder-step:last-child { border-right: 0; }
+    .ladder-step .price {
+      font-size: 1.05rem; font-weight: 700; color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .ladder-step .avail {
+      font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums;
+    }
+    .ladder-step .avail b { color: var(--ink-2); font-weight: 600; }
+    .ladder-step.low .price { color: var(--ok); }
+
+    /* ── MAIN GRID (map + tables) ────────────────────── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       overflow: hidden;
     }
-    .stadium-svg {
-      width: 100%;
-      height: auto;
-      max-height: 85vh; /* Prevents the map from being taller than the screen on mobile */
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      gap: 12px; flex-wrap: wrap;
     }
-    
-    /* SVG Section Blocks */
+    .card-head h2 {
+      font-size: 13px; font-weight: 700; margin: 0;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-head .hint {
+      font-size: 11px; color: var(--ink-3);
+    }
+    .card-body { padding: 16px; }
+
+    /* ── STADIUM MAP ────────────────────────────────── */
+    .map-wrap {
+      background: linear-gradient(180deg, #fbfbfd 0%, #f2f2f6 100%);
+      padding: 16px;
+      position: relative;
+    }
+    .stadium-svg { width: 100%; height: auto; max-height: 74vh; display: block; }
+
+    .pitch-rect { fill: var(--pitch); stroke: var(--pitch-dark); stroke-width: 1.5; }
+    .pitch-stripe { fill: var(--pitch-stripe); }
+    .pitch-line { stroke: #fff; stroke-width: 1.6; fill: none; opacity: .9; }
+    .pitch-text {
+      fill: #fff; font-weight: 800; letter-spacing: 2px;
+      text-anchor: middle; dominant-baseline: middle;
+      opacity: .95; pointer-events: none;
+    }
+    .tier-ring { fill: none; stroke: #cfcfd6; stroke-width: 1; stroke-dasharray: 3 5; }
+
     .sec-rect {
-      fill: #ffffff;
-      stroke: #000000;
-      stroke-width: 1.5;
+      fill: #fff; stroke: #111114; stroke-width: 1.3;
       cursor: pointer;
-      transition: fill 0.15s, stroke-width 0.15s;
+      transition: fill .12s, stroke-width .12s, filter .12s;
     }
-    .sec-rect:hover { fill: #f0f0f0; stroke-width: 2.5; }
-    .sec-rect.sold-out { fill: #000000; stroke: #000000; }
-    .sec-rect.sold-out:hover { fill: #333333; }
-    .sec-rect.off-sale { fill: #f9f9f9; stroke: #cccccc; stroke-dasharray: 3 3; }
-    .sec-rect.off-sale:hover { fill: #f0f0f0; stroke: #999999; }
-    
-    /* SVG Text */
+    .sec-rect:hover { fill: #fff3c4; stroke-width: 2.2; }
+    .sec-rect.sold-out { fill: #1a1a1f; stroke: #1a1a1f; }
+    .sec-rect.sold-out:hover { fill: #2e2e34; }
+    .sec-rect.off-sale { fill: #ececef; stroke: #c4c4ca; stroke-dasharray: 3 3; }
+    .sec-rect.off-sale:hover { fill: #e0e0e4; stroke: #9a9aa2; }
+
     .sec-text {
-      font-family: ui-monospace, monospace;
-      font-size: 10px;
-      text-anchor: middle;
-      dominant-baseline: central;
-      fill: #000000;
-      pointer-events: none;
-      font-weight: bold;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+      font-size: 9px; text-anchor: middle; dominant-baseline: central;
+      fill: #111114; pointer-events: none; font-weight: 700;
     }
-    .sec-text.sold-out { fill: #ffffff; }
-    .sec-text.off-sale { fill: #999999; }
-    
+    .sec-text.sold-out { fill: #fff; }
+    .sec-text.off-sale { fill: #9a9aa2; }
     .sec-count {
-      font-family: system-ui, sans-serif;
-      font-size: 7px;
-      text-anchor: middle;
-      dominant-baseline: central;
-      fill: #6b6b6b;
-      pointer-events: none;
+      font-family: -apple-system, system-ui, sans-serif;
+      font-size: 6.5px; text-anchor: middle; dominant-baseline: central;
+      fill: #5a5a62; pointer-events: none; font-weight: 600;
     }
-    .sec-count.sold-out { fill: #cccccc; }
-
-    /* Adjust SVG text sizes for very small screens */
-    @media (max-width: 600px) {
-      .sec-text { font-size: 14px; } /* Bigger font for mobile */
-      .sec-count { font-size: 10px; }
-      .stadium-container { padding: 0.5rem; }
+    .sec-count.sold-out { fill: #b8b8c0; }
+    .sec-count.off-sale { fill: #b0b0b6; }
+    .sec-price {
+      font-family: -apple-system, system-ui, sans-serif;
+      font-size: 6px; text-anchor: middle; dominant-baseline: central;
+      fill: var(--accent); pointer-events: none; font-weight: 700;
     }
-    
-    /* Pitch */
-    .pitch-rect { fill: #ffffff; stroke: #000000; stroke-width: 2; }
-    .pitch-line { stroke: #000000; stroke-width: 1.5; fill: none; }
+    .sec-price.sold-out { fill: #c87474; }
+    .sec-price.off-sale { fill: #c4c4ca; }
 
-    /* Legend */
-    .legend { display:flex; flex-wrap:wrap; gap:.75rem; justify-content:center;
-      margin-top:.75rem; font-size:.7rem; color:var(--muted); }
-    .legend .sw { display:inline-block; width:12px; height:12px; margin-right:.25rem;
-      border:2px solid var(--text); vertical-align:middle; border-radius:3px; }
-    .legend .sw.black { background:#000; }
-    .legend .sw.dashed { background:#f9f9f9; border-style:dashed; border-color:#c8c8c8; }
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+      margin-top: 12px; font-size: 11px; color: var(--ink-3);
+    }
+    .legend .sw {
+      display: inline-block; width: 11px; height: 11px; margin-right: 4px;
+      border: 1.5px solid var(--ink); vertical-align: middle; border-radius: 2px;
+    }
+    .legend .sw.black  { background: #1a1a1f; }
+    .legend .sw.dashed { background: #ececef; border-style: dashed; border-color: #c4c4ca; }
+    .legend .sw.pitch  { background: var(--pitch); border-color: var(--pitch-dark); }
 
     /* ── TABLES ─────────────────────────────────────── */
-    .panel { border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
-    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; } /* Mobile scroll */
-    
-    table { width:100%; border-collapse:collapse; font-size:.8rem; table-layout:auto; min-width: 600px; }
-    thead th { position:sticky; top:0; background:var(--bg); text-align:left;
-      padding:.6rem .5rem; font-size:.65rem; letter-spacing:.04em;
-      text-transform:uppercase; color:var(--muted);
-      border-bottom:1px solid var(--line-strong); cursor:pointer;
-      user-select:none; white-space:nowrap; font-weight:600; }
-    thead th:hover { color:var(--text); }
-    thead th .arrow { opacity:.4; margin-left:.15rem; font-size:.6rem; }
-    tbody td { padding:.6rem .5rem; border-bottom:1px solid var(--line); vertical-align:middle; }
-    tbody tr:hover td { background:var(--hover); }
-    tbody tr:last-child td { border-bottom:none; }
-    
-    td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-    td.mono { font-family:ui-monospace, monospace; font-size:.7rem; color:var(--muted); white-space:nowrap; }
-    .zero { color:#b0b0b0; }
+    .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table.data {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    table.data thead th {
+      position: sticky; top: 0; background: #fafafb;
+      text-align: left; padding: 10px 12px;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--ink-3);
+      border-bottom: 1px solid var(--line);
+      cursor: pointer; user-select: none; white-space: nowrap;
+    }
+    table.data thead th:hover { color: var(--ink); background: #f2f2f5; }
+    table.data thead th.num { text-align: right; }
+    table.data thead th .arrow { opacity: .35; margin-left: 3px; font-size: 10px; }
+    table.data thead th.sorting-asc .arrow  { opacity: 1; }
+    table.data thead th.sorting-desc .arrow { opacity: 1; }
+    table.data tbody td {
+      padding: 10px 12px; border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+    table.data tbody tr:hover td { background: #fafafb; }
+    table.data tbody tr:last-child td { border-bottom: 0; }
+    table.data td.num { text-align: right; }
+    table.data td.mono {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+      font-size: 11.5px; color: var(--ink-3);
+    }
+    table.data td.price { color: var(--accent); font-weight: 700; }
+    table.data td.zero { color: #b0b0b6; }
 
-    .pill { display:inline-block; padding:.1rem .4rem; border-radius:3px;
-      font-size:.6rem; font-weight:700; text-transform:uppercase;
-      letter-spacing:.04em; border:1px solid var(--text); text-align:center; min-width:35px; }
-    .pill.on { background:var(--text); color:var(--bg); }
-    .pill.off { background:var(--bg); color:var(--muted); border-color:var(--line); }
+    .pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 2px 8px; border-radius: 999px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.04em;
+      min-width: 42px;
+    }
+    .pill.on  { background: var(--ok-soft); color: var(--ok); }
+    .pill.off { background: #f2f2f5; color: var(--ink-3); }
+    .pill.low { background: var(--warn-soft); color: var(--warn); }
 
-    .bar { height:4px; background:#ececec; border-radius:2px; overflow:hidden; min-width:50px; width:100%; }
-    .bar > i { display:block; height:100%; background:var(--text); border-radius:2px; }
-    .bar.empty > i { background:#c8c8c8; }
+    .bar-mini {
+      height: 5px; border-radius: 3px; background: #eee;
+      overflow: hidden; min-width: 60px;
+    }
+    .bar-mini > i { display: block; height: 100%; background: var(--ink); border-radius: 3px; }
+    .bar-mini.low  > i { background: #d97706; }
+    .bar-mini.empty > i { background: #e4e4e8; }
 
-    .toolbar { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:.75rem; align-items:center; }
-    .toolbar input[type="search"], .toolbar select {
-      background:var(--bg); border:1px solid var(--line-strong); color:var(--text);
-      padding:.4rem .6rem; border-radius:var(--radius); font-size:.75rem; outline:none; width: 100%; max-width: 200px; }
-    .toolbar input[type="search"]:focus, .toolbar select:focus { box-shadow:0 0 0 2px var(--line); }
-    .toolbar label { font-size:.75rem; color:var(--muted); display:flex; align-items:center; gap:.3rem; cursor:pointer; }
-    .toolbar input[type="checkbox"] { accent-color:#000; }
-    .btn-reset { background:#fff; border:1px solid #000; padding:.4rem .6rem;
-      border-radius:4px; cursor:pointer; font-size:.75rem; font-weight:600; }
-    .btn-reset:hover { background:#000; color:#fff; }
+    /* ── TOOLBAR ────────────────────────────────────── */
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 12px 16px; border-bottom: 1px solid var(--line);
+      background: #fafafb;
+      align-items: center;
+    }
+    .toolbar input[type="search"] {
+      flex: 1 1 200px; min-width: 160px;
+      padding: 7px 10px; font-size: 13px; font-family: inherit;
+      border: 1px solid var(--line-2); border-radius: 6px;
+      background: var(--surface); color: var(--ink); outline: none;
+    }
+    .toolbar input[type="search"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(0,0,0,.06); }
+    .toolbar select {
+      padding: 7px 10px; font-size: 13px; font-family: inherit;
+      border: 1px solid var(--line-2); border-radius: 6px;
+      background: var(--surface); color: var(--ink); cursor: pointer;
+    }
+    .toolbar label.chk {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--ink-2); cursor: pointer;
+      padding: 5px 8px; border-radius: 6px;
+    }
+    .toolbar label.chk:hover { background: #f2f2f5; }
+    .toolbar input[type="checkbox"] { accent-color: var(--ink); }
+    .toolbar .btn-reset {
+      margin-left: auto;
+      padding: 7px 12px; font-size: 12px; font-weight: 600;
+      border: 1px solid var(--line-2); border-radius: 6px;
+      background: var(--surface); color: var(--ink); cursor: pointer;
+      font-family: inherit;
+    }
+    .toolbar .btn-reset:hover { background: #fafafa; border-color: var(--ink-3); }
 
-    .err { border:1px solid var(--text); padding:1rem; border-radius:var(--radius); font-size:.8rem; }
-    .empty-state { padding:1.5rem; text-align:center; color:var(--muted); font-size:.8rem; display:none; }
-    footer { margin-top:2rem; padding-top:1rem; border-top:1px solid var(--line); color:var(--muted); font-size:.65rem; text-align: center; }
+    .empty-state {
+      padding: 40px 20px; text-align: center;
+      color: var(--ink-3); font-size: 13px;
+    }
+
+    /* ── SECTION COLUMNS ────────────────────────────── */
+    .mini-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .mini-tbl th {
+      text-align: left; padding: 8px 14px;
+      font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--ink-3);
+      border-bottom: 1px solid var(--line);
+    }
+    .mini-tbl th.num { text-align: right; }
+    .mini-tbl td {
+      padding: 9px 14px; border-bottom: 1px solid var(--line);
+    }
+    .mini-tbl td.num { text-align: right; }
+    .mini-tbl tr:last-child td { border-bottom: 0; }
+    .mini-tbl td.bar-cell { width: 34%; }
+
+    footer.app {
+      padding-top: 16px; margin-top: 12px;
+      border-top: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 10px;
+      font-size: 11.5px; color: var(--ink-3);
+    }
+
+    .err-box {
+      background: var(--accent-soft); border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 16px; border-radius: var(--radius);
+      font-size: 13px;
+    }
 
     @media (max-width: 640px) {
-      /* Hide the lower-priority columns on mobile */
-      th.hide-mobile, td.hide-mobile { display: none; }
-      
-      /* Stack toolbars and cards */
-      .toolbar input[type="search"] { max-width: 100%; }
-      .cards { grid-template-columns: 1fr 1fr; }
-      
-      /* Make the map text bigger inside the SVG */
-      .sec-text { font-size: 16px; }
-      .sec-count { font-size: 11px; }
+      .hide-mobile { display: none; }
+      .kpi .value { font-size: 1.4rem; }
+      .sec-text { font-size: 12px; }
+      .sec-count { font-size: 8px; }
+      .sec-price { font-size: 7px; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>
-      Bayern Munich vs Ajax
-      <span>Talanta Sports City · Event 300b29f0…</span>
-    </h1>
-    <div class="badge">
-      <span class="dot {{ 'off' if error or (summary and summary.on_sale_sections == 0) else '' }}"></span>
-      {% if error %}connection error{% elif summary %}{{ summary.on_sale_sections }} on sale{% else %}loading…{% endif %}
+<div class="shell">
+
+  <!-- HEADER -->
+  <header class="app">
+    <div class="brand">
+      <h1>Bayern Munich vs Ajax</h1>
+      <p>Talanta Sports City · Nairobi · 5 Jan 2027, 11:00</p>
+    </div>
+    <div class="hdr-actions">
+      <span class="live-badge {{ 'off' if error or (summary and summary.on_sale_sections == 0) else '' }}">
+        <span class="pulse"></span>
+        {% if error %}Offline{% elif summary %}{{ summary.on_sale_sections }} live{% else %}Loading{% endif %}
+      </span>
     </div>
   </header>
 
   {% if error %}
-    <div class="err"><strong>Could not fetch data:</strong> {{ error }}</div>
+    <div class="err-box"><strong>Could not reach the API:</strong> {{ error }}</div>
   {% else %}
-    <div class="cards">
-      <div class="card"><h3>Remaining</h3>
-        <div class="num">{{ "{:,}".format(summary.remaining) }}</div>
-        <div class="sub">tickets left</div></div>
-      <div class="card"><h3>Sold</h3>
-        <div class="num">{{ "{:,}".format(summary.sold) }}</div>
-        <div class="sub">of {{ "{:,}".format(summary.total_sellable) }}</div></div>
-      <div class="card"><h3>Total sellable</h3>
-        <div class="num">{{ "{:,}".format(summary.total_sellable) }}</div>
-        <div class="sub">{{ summary.total_sections }} sections</div></div>
-      <div class="card"><h3>On sale</h3>
-        <div class="num">{{ summary.on_sale_sections }} / {{ summary.total_sections }}</div>
-        <div class="sub">purchasable</div></div>
+
+    <!-- KPI ROW -->
+    <div class="kpis">
+      <div class="kpi">
+        <span class="label">Remaining</span>
+        <span class="value">{{ "{:,}".format(summary.remaining) }}</span>
+        <span class="sub">tickets still available</span>
+      </div>
+      <div class="kpi">
+        <span class="label">Sold</span>
+        <span class="value">{{ "{:,}".format(summary.sold) }} <span style="font-size:1rem;color:var(--ink-3);font-weight:500;">of {{ "{:,}".format(summary.total_sellable) }}</span></span>
+        <span class="sub">{{ summary.sold_pct }}% sold</span>
+      </div>
+      <div class="kpi">
+        <span class="label">Sections on sale</span>
+        <span class="value">{{ summary.on_sale_sections }} <span style="font-size:1rem;color:var(--ink-3);font-weight:500;">of {{ summary.total_sections }}</span></span>
+        <span class="sub">purchasable right now</span>
+      </div>
     </div>
 
-    <!-- ── STADIUM VIEW ─────────────────────────────── -->
-    <section>
-      <h2>Stadium View <span class="count">Tap a section to filter</span></h2>
-      <div class="stadium-container">
-        <svg class="stadium-svg" viewBox="-500 -400 1000 800" xmlns="http://www.w3.org/2000/svg">
-          
-          <!-- Pitch (Center) -->
-          <g transform="translate(0, 0)">
-            <rect class="pitch-rect" x="-150" y="-100" width="300" height="200" rx="4" />
-            <line class="pitch-line" x1="0" y1="-100" x2="0" y2="100" />
-            <circle class="pitch-line" cx="0" cy="0" r="30" />
-            <rect class="pitch-line" x="-150" y="-40" width="30" height="80" />
-            <rect class="pitch-line" x="120" y="-40" width="30" height="80" />
-            <rect class="pitch-line" x="-150" y="-70" width="10" height="140" />
-            <rect class="pitch-line" x="140" y="-70" width="10" height="140" />
-            <text x="0" y="0" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#000" letter-spacing="1">BAYERN</text>
-            <text x="0" y="18" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="bold" fill="#000">vs</text>
-            <text x="0" y="34" text-anchor="middle" dominant-baseline="middle" font-size="16" font-weight="bold" fill="#000" letter-spacing="1">AJAX</text>
-          </g>
+    <!-- PRICE LADDER -->
+    {% if summary.price_ladder %}
+    <div class="ladder" role="list" aria-label="Live price points">
+      {% for price, qty in summary.price_ladder %}
+      <div class="ladder-step {% if loop.first %}low{% endif %}" role="listitem">
+        <span class="price">KES {{ "{:,}".format(price) }}</span>
+        <span class="avail"><b>{{ "{:,}".format(qty) }}</b> available</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
-          <!-- Tier Rings (Dashed Guide Lines) -->
-          <ellipse cx="0" cy="0" rx="180" ry="130" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4 4" fill="none"/>
-          <ellipse cx="0" cy="0" rx="260" ry="190" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4 4" fill="none"/>
-          <ellipse cx="0" cy="0" rx="340" ry="250" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4 4" fill="none"/>
-          <ellipse cx="0" cy="0" rx="420" ry="320" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4 4" fill="none"/>
+    <!-- MAIN: MAP + TOP-TIERS -->
+    <div class="main-grid">
 
-          <!-- Lower Tier (Inner Ring) -->
-          {% set lower = sections | selectattr('tier', 'equalto', 'lower') | list %}
-          {% for s in lower %}
-            {% if s.total_sellable > 0 or s.available > 0 %}
-              {% set status = 'off-sale' if not s.on_sale else ('sold-out' if s.available == 0 else '') %}
-              
+      <!-- STADIUM MAP -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Stadium View</h2>
+          <span class="hint">Click a section to filter the table below</span>
+        </div>
+        <div class="map-wrap">
+          <svg class="stadium-svg" viewBox="-500 -400 1000 800" xmlns="http://www.w3.org/2000/svg">
+            <!-- Pitch -->
+            <g transform="translate(0, 0)">
+              <rect class="pitch-rect" x="-150" y="-100" width="300" height="200" rx="4"/>
+              <rect class="pitch-stripe" x="-150" y="-100" width="30" height="200"/>
+              <rect class="pitch-stripe" x="-90"  y="-100" width="30" height="200"/>
+              <rect class="pitch-stripe" x="-30"  y="-100" width="30" height="200"/>
+              <rect class="pitch-stripe" x="30"   y="-100" width="30" height="200"/>
+              <rect class="pitch-stripe" x="90"   y="-100" width="30" height="200"/>
+              <line class="pitch-line" x1="0" y1="-100" x2="0" y2="100"/>
+              <circle class="pitch-line" cx="0" cy="0" r="30"/>
+              <circle cx="0" cy="0" r="2" fill="#fff"/>
+              <rect class="pitch-line" x="-150" y="-55" width="22" height="110"/>
+              <rect class="pitch-line" x="128"  y="-55" width="22" height="110"/>
+              <rect class="pitch-line" x="-150" y="-70" width="8" height="140"/>
+              <rect class="pitch-line" x="142"  y="-70" width="8" height="140"/>
+              <text class="pitch-text" x="0" y="-16" font-size="18">BAYERN</text>
+              <text class="pitch-text" x="0" y="4"  font-size="11" opacity="0.8">vs</text>
+              <text class="pitch-text" x="0" y="26" font-size="18">AJAX</text>
+            </g>
+
+            <!-- Rings -->
+            <ellipse class="tier-ring" cx="0" cy="0" rx="180" ry="130"/>
+            <ellipse class="tier-ring" cx="0" cy="0" rx="260" ry="190"/>
+            <ellipse class="tier-ring" cx="0" cy="0" rx="340" ry="250"/>
+            <ellipse class="tier-ring" cx="0" cy="0" rx="420" ry="320"/>
+
+            {% macro render_section(s, cx, cy, w, h) %}
+              {% if s.total_sellable > 0 or s.available > 0 %}
+                {% set status = 'off-sale' if not s.on_sale else ('sold-out' if s.available == 0 else '') %}
+                <g transform="translate({{ cx }}, {{ cy }})" onclick="filterBySection('{{ s.label }}')" style="cursor:pointer;">
+                  <rect class="sec-rect {{ status }}" x="{{ -w/2 }}" y="{{ -h/2 }}" width="{{ w }}" height="{{ h }}" rx="3">
+                    <title>{{ s.sign }} — {{ s.available }} left{% if s.price %} · {{ s.currency }} {{ "{:,}".format(s.price) }}{% endif %}</title>
+                  </rect>
+                  <text class="sec-text {{ status }}" x="0" y="-6">{{ s.sign[:5] }}</text>
+                  <text class="sec-count {{ status }}" x="0" y="4">{{ s.available }}</text>
+                  {% if s.price %}
+                    <text class="sec-price {{ status }}" x="0" y="13">{{ "{:,}".format(s.price) }}</text>
+                  {% endif %}
+                </g>
+              {% endif %}
+            {% endmacro %}
+
+            {% set lower = sections | selectattr('tier', 'equalto', 'lower') | list %}
+            {% for s in lower %}
               {% set angle = (360 / (lower|length)) * loop.index0 - 90 %}
               {% set rad = angle * 3.14159 / 180 %}
-              {% set cx = 215 * math.cos(rad) %}
-              {% set cy = 155 * math.sin(rad) %}
-              
-              <g transform="translate({{ cx }}, {{ cy }})" onclick="filterBySection('{{ s.label }}')">
-                <rect class="sec-rect {{ status }}" x="-22" y="-16" width="44" height="32" rx="3">
-                  <title>{{ s.label }} — {{ s.available }} left</title>
-                </rect>
-                <text class="sec-text {{ status }}" x="0" y="-3">{{ s.sign[:5] }}</text>
-                <text class="sec-count {{ status }}" x="0" y="9">{{ s.available }}</text>
-              </g>
-            {% endif %}
-          {% endfor %}
+              {{ render_section(s, 215 * math.cos(rad), 155 * math.sin(rad), 46, 34) }}
+            {% endfor %}
 
-          <!-- Middle Tier (Corporate/Skybox Ring) -->
-          {% set middle = sections | selectattr('tier', 'equalto', 'middle') | list %}
-          {% for s in middle %}
-            {% if s.total_sellable > 0 or s.available > 0 %}
-              {% set status = 'off-sale' if not s.on_sale else ('sold-out' if s.available == 0 else '') %}
-              
+            {% set middle = sections | selectattr('tier', 'equalto', 'middle') | list %}
+            {% for s in middle %}
               {% set angle = (360 / (middle|length)) * loop.index0 - 90 %}
               {% set rad = angle * 3.14159 / 180 %}
-              {% set cx = 295 * math.cos(rad) %}
-              {% set cy = 215 * math.sin(rad) %}
-              
-              <g transform="translate({{ cx }}, {{ cy }})" onclick="filterBySection('{{ s.label }}')">
-                <rect class="sec-rect {{ status }}" x="-22" y="-16" width="44" height="32" rx="3">
-                  <title>{{ s.label }} — {{ s.available }} left</title>
-                </rect>
-                <text class="sec-text {{ status }}" x="0" y="-3">{{ s.sign[:5] }}</text>
-                <text class="sec-count {{ status }}" x="0" y="9">{{ s.available }}</text>
-              </g>
-            {% endif %}
-          {% endfor %}
+              {{ render_section(s, 295 * math.cos(rad), 215 * math.sin(rad), 46, 34) }}
+            {% endfor %}
 
-          <!-- Upper Tier (Outer Ring) -->
-          {% set upper = sections | selectattr('tier', 'equalto', 'upper') | list %}
-          {% for s in upper %}
-            {% if s.total_sellable > 0 or s.available > 0 %}
-              {% set status = 'off-sale' if not s.on_sale else ('sold-out' if s.available == 0 else '') %}
-              
+            {% set upper = sections | selectattr('tier', 'equalto', 'upper') | list %}
+            {% for s in upper %}
               {% set angle = (360 / (upper|length)) * loop.index0 - 90 %}
               {% set rad = angle * 3.14159 / 180 %}
-              {% set cx = 375 * math.cos(rad) %}
-              {% set cy = 275 * math.sin(rad) %}
-              
-              <g transform="translate({{ cx }}, {{ cy }})" onclick="filterBySection('{{ s.label }}')">
-                <rect class="sec-rect {{ status }}" x="-24" y="-17" width="48" height="34" rx="3">
-                  <title>{{ s.label }} — {{ s.available }} left</title>
-                </rect>
-                <text class="sec-text {{ status }}" x="0" y="-3">{{ s.sign[:5] }}</text>
-                <text class="sec-count {{ status }}" x="0" y="9">{{ s.available }}</text>
-              </g>
-            {% endif %}
-          {% endfor %}
-
-        </svg>
+              {{ render_section(s, 375 * math.cos(rad), 275 * math.sin(rad), 50, 36) }}
+            {% endfor %}
+          </svg>
+          <div class="legend">
+            <span><span class="sw pitch"></span>Pitch</span>
+            <span><span class="sw"></span>On sale</span>
+            <span><span class="sw black"></span>Sold out</span>
+            <span><span class="sw dashed"></span>Not yet on sale</span>
+            <span style="color:var(--accent);font-weight:700;">KES · price</span>
+          </div>
+        </div>
       </div>
-      <div class="legend">
-        <span><span class="sw"></span>On sale</span>
-        <span><span class="sw black"></span>Sold out</span>
-        <span><span class="sw dashed"></span>Unavailable</span>
-      </div>
-    </section>
 
-    <!-- BY TIER -->
-    <section>
-      <h2>Availability by Tier <span class="count">{{ tiers|length }} tier(s)</span></h2>
-      <div class="panel">
-        <div class="table-wrap">
-          <table>
+      <!-- TIER + CATEGORY SPLIT -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+
+        <div class="card">
+          <div class="card-head">
+            <h2>By Tier</h2>
+            <span class="hint">{{ tiers|length }} tier(s)</span>
+          </div>
+          <table class="mini-tbl">
             <thead>
-              <tr><th>Tier</th><th class="num">Sections</th><th class="num">Remaining</th><th class="num">Sellable</th><th style="width:30%;">Availability</th></tr>
+              <tr>
+                <th>Tier</th>
+                <th class="num">Left</th>
+                <th class="num hide-mobile">Sellable</th>
+                <th class="bar-cell hide-mobile">Fill</th>
+              </tr>
             </thead>
             <tbody>
               {% for tier, v in tiers %}
-              {% set pct = (v.available / v.sellable * 100) if v.sellable else 0 %}
-              <tr>
-                <td style="text-transform:capitalize;">{{ tier }}</td>
-                <td class="num">{{ v.sections }}</td>
-                <td class="num">{{ "{:,}".format(v.available) }}</td>
-                <td class="num">{{ "{:,}".format(v.sellable) }}</td>
-                <td><div class="bar {{ 'empty' if pct == 0 else '' }}"><i style="width:{{ pct|round(0, 'floor') }}%"></i></div></td>
-              </tr>
+                {% set pct = (v.available / v.sellable * 100) if v.sellable else 0 %}
+                <tr>
+                  <td style="text-transform:capitalize;font-weight:600;">{{ tier }}</td>
+                  <td class="num">{{ "{:,}".format(v.available) }}</td>
+                  <td class="num hide-mobile">{{ "{:,}".format(v.sellable) }}</td>
+                  <td class="bar-cell hide-mobile">
+                    <div class="bar-mini {{ 'empty' if pct == 0 else ('low' if pct < 20 else '') }}">
+                      <i style="width:{{ pct|round(1) }}%"></i>
+                    </div>
+                  </td>
+                </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-      </div>
-    </section>
 
-    <!-- BY CATEGORY -->
-    <section>
-      <h2>Availability by Category <span class="count">{{ categories|length }} categor(y/ies)</span></h2>
-      <div class="panel">
-        <div class="table-wrap">
-          <table>
+        <div class="card">
+          <div class="card-head">
+            <h2>By Category</h2>
+            <span class="hint">{{ categories|length }} categor(y/ies)</span>
+          </div>
+          <table class="mini-tbl">
             <thead>
-              <tr><th>Category</th><th class="num">Sections</th><th class="num">Remaining</th><th class="num">Sellable</th><th style="width:30%;">Availability</th></tr>
+              <tr>
+                <th>Category</th>
+                <th class="num">Left</th>
+                <th class="num hide-mobile">Sellable</th>
+                <th class="bar-cell hide-mobile">Fill</th>
+              </tr>
             </thead>
             <tbody>
               {% for cat, v in categories %}
-              {% set pct = (v.available / v.sellable * 100) if v.sellable else 0 %}
-              <tr>
-                <td style="text-transform:capitalize;">{{ cat }}</td>
-                <td class="num">{{ v.sections }}</td>
-                <td class="num">{{ "{:,}".format(v.available) }}</td>
-                <td class="num">{{ "{:,}".format(v.sellable) }}</td>
-                <td><div class="bar {{ 'empty' if pct == 0 else '' }}"><i style="width:{{ pct|round(0, 'floor') }}%"></i></div></td>
-              </tr>
+                {% set pct = (v.available / v.sellable * 100) if v.sellable else 0 %}
+                <tr>
+                  <td style="text-transform:capitalize;font-weight:600;">{{ cat }}</td>
+                  <td class="num">{{ "{:,}".format(v.available) }}</td>
+                  <td class="num hide-mobile">{{ "{:,}".format(v.sellable) }}</td>
+                  <td class="bar-cell hide-mobile">
+                    <div class="bar-mini {{ 'empty' if pct == 0 else ('low' if pct < 20 else '') }}">
+                      <i style="width:{{ pct|round(1) }}%"></i>
+                    </div>
+                  </td>
+                </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
+
       </div>
-    </section>
+    </div>
 
     <!-- SECTIONS DETAIL -->
-    <section>
-      <h2>Sections Details <span class="count" id="visibleCount">{{ sections|length }}</span></h2>
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-head">
+        <h2>Sections <span style="font-weight:400;color:var(--ink-3);font-size:11px;text-transform:none;letter-spacing:0;">({{ sections|length }})</span></h2>
+        <span class="hint" id="visibleCount">Showing all</span>
+      </div>
       <div class="toolbar">
-        <input type="search" id="search" placeholder="Filter by section or category…">
+        <input type="search" id="search" placeholder="Search section or category…">
         <select id="categoryFilter">
           <option value="">All categories</option>
           {% for cat, _ in categories %}<option value="{{ cat }}">{{ cat }}</option>{% endfor %}
@@ -369,127 +573,162 @@
           <option value="">All tiers</option>
           {% for tier, _ in tiers %}<option value="{{ tier }}">{{ tier }}</option>{% endfor %}
         </select>
-        <label><input type="checkbox" id="onlyAvailable"> Only with stock</label>
-        <label><input type="checkbox" id="onlyOnSale"> Only on sale</label>
+        <label class="chk"><input type="checkbox" id="onlyAvailable"> In stock</label>
+        <label class="chk"><input type="checkbox" id="onlyOnSale"> On sale</label>
         <button class="btn-reset" onclick="resetFilters()">Reset</button>
       </div>
-      <div class="panel">
-        <div class="table-wrap">
-          <table id="sectionsTable">
-            <thead>
-              <tr>
-                <th data-sort="label">Section <span class="arrow">↕</span></th>
-                <th data-sort="tier" class="hide-mobile">Tier <span class="arrow">↕</span></th>
-                <th data-sort="category" class="hide-mobile">Category <span class="arrow">↕</span></th>
-                <th data-sort="available" class="num">Remaining <span class="arrow">↕</span></th>
-                <th data-sort="sellable" class="num hide-mobile">Sellable <span class="arrow">↕</span></th>
-                <th style="width:18%;" class="hide-mobile">Availability</th>
-                <th data-sort="onsale" style="text-align:center;">Status <span class="arrow">↕</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for s in sections %}
-              {% set pct = (s.available / s.total_sellable * 100) if s.total_sellable else 0 %}
-              <tr data-label="{{ s.label }}" data-tier="{{ s.tier or 'untyped' }}"
+      <div class="tbl-wrap">
+        <table class="data" id="sectionsTable">
+          <thead>
+            <tr>
+              <th data-sort="label">Section <span class="arrow">↕</span></th>
+              <th data-sort="tier" class="hide-mobile">Tier <span class="arrow">↕</span></th>
+              <th data-sort="category" class="hide-mobile">Category <span class="arrow">↕</span></th>
+              <th data-sort="price" class="num">Price <span class="arrow">↕</span></th>
+              <th data-sort="available" class="num">Left <span class="arrow">↕</span></th>
+              <th data-sort="sellable" class="num hide-mobile">Sellable <span class="arrow">↕</span></th>
+              <th class="hide-mobile">Fill</th>
+              <th data-sort="onsale" style="text-align:center;">Status <span class="arrow">↕</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in sections %}
+              <tr data-label="{{ s.label }}"
+                  data-tier="{{ s.tier or 'untyped' }}"
                   data-category="{{ s.category or 'untyped' }}"
                   data-available="{{ s.available or 0 }}"
                   data-sellable="{{ s.total_sellable or 0 }}"
+                  data-price="{{ s.price or 0 }}"
                   data-onsale="{{ 1 if s.on_sale else 0 }}">
-                <td><strong>{{ s.sign }}</strong><br><span class="mono">{{ s.code }}</span></td>
-                <td style="text-transform:capitalize;" class="hide-mobile">{{ s.tier or '—' }}</td>
-                <td style="text-transform:capitalize;" class="hide-mobile">{{ s.category or '—' }}</td>
+                <td>
+                  <div style="font-weight:700;">{{ s.sign }}</div>
+                  <div class="mono">{{ s.code }}</div>
+                </td>
+                <td class="hide-mobile" style="text-transform:capitalize;color:var(--ink-2);">{{ s.tier or '—' }}</td>
+                <td class="hide-mobile" style="text-transform:capitalize;color:var(--ink-2);">{{ s.category or '—' }}</td>
+                <td class="num price">{% if s.price %}{{ s.currency }} {{ "{:,}".format(s.price) }}{% else %}<span style="color:var(--ink-3);">—</span>{% endif %}</td>
                 <td class="num {{ 'zero' if not s.available }}">{{ "{:,}".format(s.available or 0) }}</td>
                 <td class="num hide-mobile">{{ "{:,}".format(s.total_sellable or 0) }}</td>
-                <td class="hide-mobile"><div class="bar {{ 'empty' if pct == 0 else '' }}"><i style="width:{{ pct|round(0, 'floor') }}%"></i></div></td>
-                <td style="text-align:center;"><span class="pill {{ 'on' if s.on_sale else 'off' }}">{{ 'YES' if s.on_sale else 'no' }}</span></td>
+                <td class="hide-mobile">
+                  {% set pct = (s.available / s.total_sellable * 100) if s.total_sellable else 0 %}
+                  <div class="bar-mini {{ 'empty' if pct == 0 else ('low' if pct < 20 else '') }}">
+                    <i style="width:{{ pct|round(1) }}%"></i>
+                  </div>
+                </td>
+                <td style="text-align:center;">
+                  {% if s.on_sale and s.available == 0 %}
+                    <span class="pill off">Sold</span>
+                  {% elif s.on_sale and s.available <= 5 %}
+                    <span class="pill low">Low</span>
+                  {% elif s.on_sale %}
+                    <span class="pill on">On</span>
+                  {% else %}
+                    <span class="pill off">Off</span>
+                  {% endif %}
+                </td>
               </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        <div class="empty-state" id="emptyState">No sections match your filters.</div>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
-    </section>
+      <div class="empty-state" id="emptyState" style="display:none;">No sections match these filters.</div>
+    </div>
 
-    <footer>Auto-refreshes every 30s · Source: talantasportscity.com seatmap API</footer>
+    <!-- FOOTER -->
+    <footer class="app">
+      <span>Data from talantasportscity.com seatmap API · Auto-refresh every 60s</span>
+    </footer>
   {% endif %}
+</div>
 
-  <script>
-    (function () {
-      const table = document.getElementById('sectionsTable');
-      if (!table) return;
-      const tbody = table.querySelector('tbody');
-      const rows = Array.from(tbody.querySelectorAll('tr'));
-      const search = document.getElementById('search');
-      const categoryFilter = document.getElementById('categoryFilter');
-      const tierFilter = document.getElementById('tierFilter');
-      const onlyAvailable = document.getElementById('onlyAvailable');
-      const onlyOnSale = document.getElementById('onlyOnSale');
-      const visibleCount = document.getElementById('visibleCount');
-      const emptyState = document.getElementById('emptyState');
-      let sortKey = 'available', sortDir = -1;
+<script>
+(function () {
+  const table = document.getElementById('sectionsTable');
+  if (!table) return;
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const search = document.getElementById('search');
+  const categoryFilter = document.getElementById('categoryFilter');
+  const tierFilter = document.getElementById('tierFilter');
+  const onlyAvailable = document.getElementById('onlyAvailable');
+  const onlyOnSale = document.getElementById('onlyOnSale');
+  const visibleCount = document.getElementById('visibleCount');
+  const emptyState = document.getElementById('emptyState');
+  let sortKey = 'available', sortDir = -1;
 
-      function applyFilters() {
-        const q = search.value.trim().toLowerCase();
-        const cat = categoryFilter.value;
-        const tier = tierFilter.value;
-        let visible = 0;
-        rows.forEach(r => {
-          const matchQ = !q || r.dataset.label.toLowerCase().includes(q) || r.dataset.category.toLowerCase().includes(q);
-          const matchCat = !cat || r.dataset.category === cat;
-          const matchTier = !tier || r.dataset.tier === tier;
-          const matchA = !onlyAvailable.checked || Number(r.dataset.available) > 0;
-          const matchS = !onlyOnSale.checked || r.dataset.onsale === '1';
-          const show = matchQ && matchCat && matchTier && matchA && matchS;
-          r.style.display = show ? '' : 'none';
-          if (show) visible++;
-        });
-        visibleCount.textContent = visible;
-        emptyState.style.display = visible ? 'none' : 'block';
-      }
+  function applyFilters() {
+    const q = search.value.trim().toLowerCase();
+    const cat = categoryFilter.value;
+    const tier = tierFilter.value;
+    let visible = 0;
+    rows.forEach(r => {
+      const matchQ = !q ||
+        r.dataset.label.toLowerCase().includes(q) ||
+        r.dataset.category.toLowerCase().includes(q);
+      const matchCat = !cat || r.dataset.category === cat;
+      const matchTier = !tier || r.dataset.tier === tier;
+      const matchA = !onlyAvailable.checked || Number(r.dataset.available) > 0;
+      const matchS = !onlyOnSale.checked || r.dataset.onsale === '1';
+      const show = matchQ && matchCat && matchTier && matchA && matchS;
+      r.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    visibleCount.textContent = visible === rows.length
+      ? 'Showing all'
+      : `Showing ${visible} of ${rows.length}`;
+    emptyState.style.display = visible ? 'none' : 'block';
+  }
 
-      function sortRows(key, dir) {
-        const val = r => {
-          if (key === 'available' || key === 'sellable' || key === 'onsale') return Number(r.dataset[key]);
-          return r.dataset[key];
-        };
-        rows.sort((a, b) => {
-          const va = val(a), vb = val(b);
-          if (va < vb) return -1 * dir;
-          if (va > vb) return 1 * dir;
-          return 0;
-        });
-        rows.forEach(r => tbody.appendChild(r));
-      }
+  function sortRows(key, dir) {
+    const val = r => {
+      if (['available','sellable','onsale','price'].includes(key)) return Number(r.dataset[key]);
+      return r.dataset[key];
+    };
+    rows.sort((a, b) => {
+      const va = val(a), vb = val(b);
+      if (va < vb) return -1 * dir;
+      if (va > vb) return  1 * dir;
+      return 0;
+    });
+    rows.forEach(r => tbody.appendChild(r));
+  }
 
-      table.querySelectorAll('thead th[data-sort]').forEach(th => {
-        th.addEventListener('click', () => {
-          const key = th.dataset.sort;
-          if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = -1; }
-          sortRows(sortKey, sortDir); applyFilters();
-        });
+  table.querySelectorAll('thead th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (sortKey === key) sortDir *= -1;
+      else { sortKey = key; sortDir = -1; }
+      table.querySelectorAll('thead th').forEach(h => {
+        h.classList.remove('sorting-asc','sorting-desc');
+        const a = h.querySelector('.arrow'); if (a) a.textContent = '↕';
       });
+      th.classList.add(sortDir === 1 ? 'sorting-asc' : 'sorting-desc');
+      const arr = th.querySelector('.arrow'); if (arr) arr.textContent = sortDir === 1 ? '▲' : '▼';
+      sortRows(sortKey, sortDir); applyFilters();
+    });
+  });
 
-      [search, categoryFilter, tierFilter, onlyAvailable, onlyOnSale].forEach(el =>
-        el.addEventListener('input', applyFilters));
+  [search, categoryFilter, tierFilter, onlyAvailable, onlyOnSale].forEach(el =>
+    el.addEventListener('input', applyFilters));
 
-      window.filterBySection = function (label) {
-        search.value = label;
-        applyFilters();
-        document.getElementById('sectionsTable').scrollIntoView({ behavior:'smooth', block:'center' });
-      };
-      window.resetFilters = function () {
-        search.value = '';
-        categoryFilter.value = '';
-        tierFilter.value = '';
-        onlyAvailable.checked = false;
-        onlyOnSale.checked = false;
-        applyFilters();
-      };
+  window.filterBySection = function (label) {
+    search.value = label;
+    applyFilters();
+    const el = document.getElementById('sectionsTable');
+    if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+  };
+  window.resetFilters = function () {
+    search.value = '';
+    categoryFilter.value = '';
+    tierFilter.value = '';
+    onlyAvailable.checked = false;
+    onlyOnSale.checked = false;
+    applyFilters();
+  };
 
-      sortRows(sortKey, sortDir);
-      applyFilters();
-    })();
-  </script>
+  sortRows(sortKey, sortDir);
+  applyFilters();
+})();
+</script>
 </body>
 </html>

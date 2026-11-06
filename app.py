@@ -5,9 +5,6 @@ from collections import defaultdict
 from flask import Flask, render_template, jsonify
 
 app = Flask(__name__)
-
-# ── Inject math module into Jinja templates ──────────
-# (This is the fix for the "'math' is undefined" error)
 app.jinja_env.globals.update(math=math)
 
 # ── Config ─────────────────────────────────────────────
@@ -43,6 +40,8 @@ def get_section_meta():
             "tier":     s.get("tier") or "",
             "category": s.get("category") or "",
             "seat_count": s.get("seat_count") or 0,
+            "price":    s.get("price"),
+            "currency": s.get("currency") or "KES",
         }
         for s in data.get("sections", [])
     }
@@ -76,6 +75,11 @@ def enrich_sections(sections, meta_map):
         code     = meta.get("code", "")
         name     = meta.get("name", "")
         sign     = meta.get("sign") or name or code or s["id"][:8]
+        price    = s.get("price")
+        currency = s.get("currency") or meta.get("currency") or "KES"
+        available = s.get("available") or 0
+        sellable  = s.get("total_sellable") or 0
+        pct = (available / sellable * 100) if sellable else 0
 
         suffix = f" ({category.upper()})" if category and category != "general" else ""
 
@@ -88,6 +92,9 @@ def enrich_sections(sections, meta_map):
             "sign":       sign,
             "seat_count": meta.get("seat_count", 0),
             "label":      f"{sign}{suffix}",
+            "price":      price,
+            "currency":   currency,
+            "pct":        round(pct, 1),
         })
     return out
 
@@ -98,6 +105,7 @@ def summarize(sections):
     on_sale_count  = 0
     by_tier        = defaultdict(lambda: {"sections": 0, "available": 0, "sellable": 0})
     by_category    = defaultdict(lambda: {"sections": 0, "available": 0, "sellable": 0})
+    prices         = []
 
     for s in sections:
         avail    = s.get("available") or 0
@@ -106,6 +114,8 @@ def summarize(sections):
         total_sellable  += sellable
         if s.get("on_sale"):
             on_sale_count += 1
+        if s.get("price") and s.get("on_sale"):
+            prices.append(s["price"])
 
         tier = s.get("tier") or "untyped"
         cat  = s.get("category") or "untyped"
@@ -113,6 +123,13 @@ def summarize(sections):
             bucket["sections"]  += 1
             bucket["available"] += avail
             bucket["sellable"]  += sellable
+
+    # Distinct price points that are actually purchasable
+    price_points = defaultdict(int)
+    for s in sections:
+        if s.get("price") and s.get("on_sale") and s.get("available"):
+            price_points[s["price"]] += s["available"]
+    price_ladder = sorted(price_points.items())
 
     return {
         "total_sellable":   total_sellable,
@@ -123,6 +140,10 @@ def summarize(sections):
         "total_sections":   len(sections),
         "by_tier":          dict(by_tier),
         "by_category":      dict(by_category),
+        "min_price":        min(prices) if prices else None,
+        "max_price":        max(prices) if prices else None,
+        "price_ladder":     price_ladder,
+        "sold_pct":         round((total_sellable - total_available) / total_sellable * 100, 1) if total_sellable else 0,
     }
 
 
@@ -167,6 +188,7 @@ def api():
     return jsonify({
         "summary":  summarize(sections),
         "sections": sections,
+        "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
     })
 
 
